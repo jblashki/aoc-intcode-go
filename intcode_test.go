@@ -48,6 +48,97 @@ func TestProgramInvalidOp(t *testing.T) {
 	}
 }
 
+func TestProgramParamMode(t *testing.T) {
+	err := testProgram("./test_input/TstProgParamMode", 4, 99)
+	if err != nil {
+		t.Fatalf(`TestProgram4: returned error: %v`, err)
+	}
+}
+
+func TestProgramEq1(t *testing.T) {
+	err := testProgram("./test_input/TstProgEq1", 5, 0)
+	if err != nil {
+		t.Fatalf(`TestProgramEq1: returned error: %v`, err)
+	}
+}
+
+func TestProgramEq2(t *testing.T) {
+	err := testProgram("./test_input/TstProgEq2", 5, 1)
+	if err != nil {
+		t.Fatalf(`TestProgramEq2: returned error: %v`, err)
+	}
+}
+
+func TestProgramEq3(t *testing.T) {
+	err := testProgram("./test_input/TstProgEq3", 1, 0)
+	if err != nil {
+		t.Fatalf(`TestProgramEq3: returned error: %v`, err)
+	}
+}
+
+func TestProgramEq4(t *testing.T) {
+	err := testProgram("./test_input/TstProgEq4", 1, 1)
+	if err != nil {
+		t.Fatalf(`TestProgramEq4: returned error: %v`, err)
+	}
+}
+
+func TestProgramLt1(t *testing.T) {
+	err := testProgram("./test_input/TstProgLt1", 5, 1)
+	if err != nil {
+		t.Fatalf(`TestProgramLt1: returned error: %v`, err)
+	}
+}
+
+func TestProgramLt2(t *testing.T) {
+	err := testProgram("./test_input/TstProgLt2", 5, 0)
+	if err != nil {
+		t.Fatalf(`TestProgramLt2: returned error: %v`, err)
+	}
+}
+
+func TestProgramLt3(t *testing.T) {
+	err := testProgram("./test_input/TstProgLt3", 1, 0)
+	if err != nil {
+		t.Fatalf(`TestProgramLt3: returned error: %v`, err)
+	}
+}
+
+func TestProgramLt4(t *testing.T) {
+	err := testProgram("./test_input/TstProgLt4", 1, 1)
+	if err != nil {
+		t.Fatalf(`TestProgramLt4: returned error: %v`, err)
+	}
+}
+
+func TestProgramJmp1(t *testing.T) {
+	err := testProgram("./test_input/TstProgJmp1", 13, 20)
+	if err != nil {
+		t.Fatalf(`TestProgramJmp1: returned error: %v`, err)
+	}
+}
+
+func TestProgramJmp2(t *testing.T) {
+	err := testProgram("./test_input/TstProgJmp2", 13, 9)
+	if err != nil {
+		t.Fatalf(`TestProgramJmp2: returned error: %v`, err)
+	}
+}
+
+func TestProgramJmp3(t *testing.T) {
+	err := testProgram("./test_input/TstProgJmp3", 8, 0)
+	if err != nil {
+		t.Fatalf(`TestProgramJmp3: returned error: %v`, err)
+	}
+}
+
+func TestProgramJmp4(t *testing.T) {
+	err := testProgram("./test_input/TstProgJmp4", 8, 1)
+	if err != nil {
+		t.Fatalf(`TestProgramJmp4: returned error: %v`, err)
+	}
+}
+
 func testProgramMultipleOutput(progFile string, outAddrs []int, wantResults []int) error {
 	ic := Create()
 
