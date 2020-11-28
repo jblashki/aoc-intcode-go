@@ -1,4 +1,4 @@
-module intcode
+module github.com/jblashki/aoc-intcode-go
 
 go 1.14
 
