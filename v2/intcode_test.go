@@ -227,7 +227,7 @@ func testInputOutputProgram(progFile string, input []int, wantOutput []int) erro
 	wg.Add(1)
 
 	inputChan := make(chan int, len(input))
-	outputChan := make(chan int, len(wantOutput))
+	outputChan := make(chan int)
 	haltSignalChan := make(chan int, 1)
 
 	defer func() {
@@ -242,8 +242,6 @@ func testInputOutputProgram(progFile string, input []int, wantOutput []int) erro
 
 	go Run(ic, inputChan, outputChan, haltSignalChan, wg)
 
-	wg.Wait()
-
 	for i := 0; i < len(wantOutput); i++ {
 		select {
 		case value := <-outputChan:
@@ -257,6 +255,8 @@ func testInputOutputProgram(progFile string, input []int, wantOutput []int) erro
 
 		}
 	}
+
+	wg.Wait()
 
 	return nil
 }
