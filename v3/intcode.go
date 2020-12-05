@@ -6,34 +6,36 @@ import (
 	"os"
 	"sync"
 
-	"github.com/jblashki/aoc-filereader-go"
+	filereader "github.com/jblashki/aoc-filereader-go"
 )
 
-const op_sum = 1
-const op_mul = 2
-const op_inp = 3
-const op_out = 4
-const op_jpt = 5
-const op_jpf = 6
-const op_lst = 7
-const op_equ = 8
-const op_rbs = 9
-const op_hlt = 99
+const opSum = 1
+const opMul = 2
+const opInp = 3
+const opOut = 4
+const opJpt = 5
+const opJpf = 6
+const opLst = 7
+const opEqu = 8
+const opRbs = 9
+const opHlt = 99
 
 type paramMode int
 
 const (
-	mode_pos = iota // Postion mode i.e. address
-	mode_val        // Value mode i.e. absolute value
-	mode_rel        // Relative mode i.e. relative address
+	modePos = iota // Postion mode i.e. address
+	modeVal        // Value mode i.e. absolute value
+	modeRel        // Relative mode i.e. relative address
 )
 
+// IntCode is the main intcode structure used to define an intcode computer
 type IntCode struct {
 	memory       []int
 	programPos   int
 	relativeBase int
 }
 
+// Create creates a new intcode computer
 func Create() *IntCode {
 	newIC := new(IntCode)
 
@@ -44,6 +46,7 @@ func Create() *IntCode {
 	return newIC
 }
 
+// Copy does a deep copy of an intcode computer
 func Copy(sourceIC *IntCode) *IntCode {
 	copiedIC := *sourceIC
 
@@ -53,6 +56,7 @@ func Copy(sourceIC *IntCode) *IntCode {
 	return &copiedIC
 }
 
+// Set sets an address in an intcode to a specific value
 func Set(ic *IntCode, addr int, value int) error {
 	if addr >= len(ic.memory) {
 		newSpace := addr - len(ic.memory) + 1
@@ -65,6 +69,7 @@ func Set(ic *IntCode, addr int, value int) error {
 	return nil
 }
 
+// Get returns the value at a specific address in an intocode
 func Get(ic *IntCode, addr int) int {
 	if addr >= len(ic.memory) {
 		return 0
@@ -75,15 +80,16 @@ func Get(ic *IntCode, addr int) int {
 
 func getParamValue(ic *IntCode, param int, mode paramMode) int {
 	returnVal := param
-	if mode == mode_pos {
+	if mode == modePos {
 		returnVal = Get(ic, param)
-	} else if mode == mode_rel {
+	} else if mode == modeRel {
 		returnVal = Get(ic, ic.relativeBase+param)
 	}
 
 	return returnVal
 }
 
+// Run runs a specific int code
 func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, errorChan chan string, wg *sync.WaitGroup, debugFile string) {
 	ic.programPos = 0
 	ic.relativeBase = 0
@@ -113,7 +119,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 		op := fullOp % 100
 
 		switch op {
-		case op_sum:
+		case opSum:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param3 := readNextAddr(ic)
@@ -125,7 +131,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 			val2 := getParamValue(ic, param2, param2Mode)
 
 			outAddr := param3
-			if param3Mode == mode_rel {
+			if param3Mode == modeRel {
 				outAddr += ic.relativeBase
 			}
 
@@ -142,7 +148,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				return
 			}
 
-		case op_mul:
+		case opMul:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param3 := readNextAddr(ic)
@@ -154,7 +160,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 			val2 := getParamValue(ic, param2, param2Mode)
 
 			outAddr := param3
-			if param3Mode == mode_rel {
+			if param3Mode == modeRel {
 				outAddr += ic.relativeBase
 			}
 
@@ -171,12 +177,12 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				return
 			}
 
-		case op_inp:
+		case opInp:
 			param1 := readNextAddr(ic)
 			param1Mode := getParamMode(fullOp, 0)
 
 			outAddr := param1
-			if param1Mode == mode_rel {
+			if param1Mode == modeRel {
 				outAddr += ic.relativeBase
 			}
 
@@ -195,7 +201,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				return
 			}
 
-		case op_out:
+		case opOut:
 			param1 := readNextAddr(ic)
 			param1Mode := getParamMode(fullOp, 0)
 
@@ -208,7 +214,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 
 			output <- val1
 
-		case op_jpt:
+		case opJpt:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param1Mode := getParamMode(fullOp, 0)
@@ -226,7 +232,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				ic.programPos = val2
 			}
 
-		case op_jpf:
+		case opJpf:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param1Mode := getParamMode(fullOp, 0)
@@ -244,7 +250,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				ic.programPos = val2
 			}
 
-		case op_lst:
+		case opLst:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param3 := readNextAddr(ic)
@@ -256,7 +262,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 			val2 := getParamValue(ic, param2, param2Mode)
 
 			outAddr := param3
-			if param3Mode == mode_rel {
+			if param3Mode == modeRel {
 				outAddr += ic.relativeBase
 			}
 
@@ -278,7 +284,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				return
 			}
 
-		case op_equ:
+		case opEqu:
 			param1 := readNextAddr(ic)
 			param2 := readNextAddr(ic)
 			param3 := readNextAddr(ic)
@@ -290,7 +296,7 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 			val2 := getParamValue(ic, param2, param2Mode)
 
 			outAddr := param3
-			if param3Mode == mode_rel {
+			if param3Mode == modeRel {
 				outAddr += ic.relativeBase
 			}
 
@@ -312,14 +318,14 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 				return
 			}
 
-		case op_hlt:
+		case opHlt:
 			haltSignal <- 0
 			if debug {
 				log.Printf("[%v, %v] OP_HLT", ic.programPos-1, ic.relativeBase)
 			}
 			return
 
-		case op_rbs:
+		case opRbs:
 			param1 := readNextAddr(ic)
 			param1Mode := getParamMode(fullOp, 0)
 
@@ -339,13 +345,9 @@ func Run(ic *IntCode, input chan int, output chan int, haltSignal chan int, erro
 			return
 		}
 	}
-
-	haltSignal <- 1
-	errorMsg := fmt.Sprintf("Invalid HLT")
-	errorChan <- errorMsg
-	return
 }
 
+// Load loads an intcode with data from the file specificed
 func Load(ic *IntCode, file string) error {
 	var err error
 
@@ -372,10 +374,10 @@ func getParamMode(op int, param int) paramMode {
 
 	mode := op % 10
 	if mode == 0 {
-		return mode_pos
+		return modePos
 	} else if mode == 1 {
-		return mode_val
+		return modeVal
 	} else {
-		return mode_rel
+		return modeRel
 	}
 }
