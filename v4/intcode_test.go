@@ -240,9 +240,7 @@ func testInputOutputProgram(progFile string, input []int, wantOutput []int) erro
 		} else if halted {
 			if i != len(wantOutput) {
 				return fmt.Errorf("Revieved halt signal when expecting result @ address %v in test %v", i, progFile)
-			} else {
-				break
-			}
+			break			
 		} else {
 			if i >= len(wantOutput) {
 				return fmt.Errorf("Program returned unexpected output %v @ %v", value, i)
