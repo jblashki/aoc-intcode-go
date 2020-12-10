@@ -156,10 +156,10 @@ func testProgramMultipleOutput(progFile string, outAddrs []int, wantResults []in
 
 	go Run(ic, "")
 
-	value, halt, err := Read(ic)
+	value, sig, err := Read(ic)
 	if err != nil {
 		return err
-	} else if !halt {
+	} else if sig != SigHalt {
 		return fmt.Errorf("Program returned unexpected output: %v", value)
 	}
 
@@ -193,10 +193,10 @@ func testProgram(progFile string, outAddr int, wantResult int) error {
 
 	go Run(ic, "")
 
-	value, halted, err := Read(ic)
+	value, sig, err := Read(ic)
 	if err != nil {
 		return err
-	} else if !halted {
+	} else if sig != SigHalt {
 		return fmt.Errorf("Program returned unexpected output: %v", value)
 	}
 
@@ -214,7 +214,7 @@ func testProgram(progFile string, outAddr int, wantResult int) error {
 
 func testInputOutputProgram(progFile string, input []int, wantOutput []int) error {
 	wg := new(sync.WaitGroup)
-	ic, err := CreateLoad(wg, progFile, len(input), 0)
+	ic, err := CreateLoad(wg, progFile, 0, 0)
 	if err != nil {
 		errormsg := fmt.Sprintf("Failed to load program: %v", err)
 		return errors.New(errormsg)
@@ -226,22 +226,29 @@ func testInputOutputProgram(progFile string, input []int, wantOutput []int) erro
 
 	wg.Add(1)
 
-	go Run(ic, "")
+	go Run(ic, "./jb.tmp")
 
-	for i := 0; i < len(input); i++ {
-		Write(ic, input[i])
-	}
+	// for i := 0; i < len(input); i++ {
+	// 	Write(ic, input[i])
+	// }
 
 	i := 0
+	j := 0
 	for {
-		value, halted, err := Read(ic)
+		value, sig, err := Read(ic)
 		if err != nil {
 			return err
-		} else if halted {
+		} else if sig == SigHalt {
 			if i != len(wantOutput) {
 				return fmt.Errorf("Revieved halt signal when expecting result @ address %v in test %v", i, progFile)
 			}
 			break
+		} else if sig == SigInput {
+			if j >= len(input) {
+				return fmt.Errorf("Program sent unexpected input signal @ %v", j)
+			}
+			Write(ic, input[j])
+			j++
 		} else {
 			if i >= len(wantOutput) {
 				return fmt.Errorf("Program returned unexpected output %v @ %v", value, i)
